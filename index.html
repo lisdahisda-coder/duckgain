@@ -1,0 +1,487 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Duck Love: Monster Escape</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pink-light: #ffcce5;
+            --pink-main: #ff85a2;
+            --pink-dark: #f06292;
+        }
+
+        body { 
+            margin: 0; background: #fff9c4; display: flex; 
+            flex-direction: column; align-items: center; 
+            font-family: 'Quicksand', sans-serif; color: #5d4037;
+            overflow: hidden; touch-action: none;
+            height: 100vh; justify-content: center;
+        }
+	
+	.mobile-controls {
+    position: fixed; /* Membuat posisi menempel di layar */
+    bottom: 20px;    /* Jarak dari bawah */
+    left: 0;
+    width: 100%;     /* Memenuhi lebar layar */
+    display: flex;
+    justify-content: space-between; /* Menendang satu ke kiri, satu ke kanan */
+    padding: 0 20px; /* Jarak dari pinggir layar */
+    box-sizing: border-box;
+    pointer-events: none; /* Agar area kosong di tengah tidak menghalangi klik */
+    z-index: 100;
+}
+
+.d-pad {
+    display: grid;
+    grid-template-columns: repeat(3, 45px);
+    grid-template-rows: repeat(2, 45px);
+    gap: 8px;
+    pointer-events: auto; /* Mengembalikan fungsi klik hanya pada tombol */
+}
+
+
+
+        .btn-ctrl {
+
+            width: 50px;
+
+            height: 50px;
+
+            background: white;
+
+            border: 3px solid var(--pink-dark);
+
+            border-radius: 12px;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            font-weight: bold;
+
+            font-size: 20px;
+
+            color: var(--pink-dark);
+
+            user-select: none;
+
+            touch-action: none;
+
+            box-shadow: 0 4px 0 #ad1457;
+
+        }
+
+
+
+        .btn-ctrl:active {
+
+            background: var(--pink-light);
+
+            transform: translateY(3px);
+
+            box-shadow: 0 1px 0 #ad1457;
+
+        }
+
+        /* --- STYLING HALAMAN UTAMA (MENU) --- */
+        #menu-screen {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, var(--pink-light) 0%, var(--pink-main) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .duck-menu-img {
+            width: 180px;
+            animation: bounce 2s infinite ease-in-out;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2));
+            margin-bottom: 20px;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .title-menu {
+            font-family: 'Fredoka One', cursive;
+            color: white;
+            font-size: 3rem;
+            text-shadow: 4px 4px 0px var(--pink-dark);
+            margin: 0 0 30px 0;
+        }
+
+        .btn-mulai {
+            padding: 15px 60px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 2rem;
+            color: white;
+            background-color: var(--pink-dark);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #c2185b;
+            transition: 0.1s;
+        }
+
+        .btn-mulai:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #c2185b;
+        }
+
+        /* --- STYLING ARENA GAME --- */
+        #game-screen { display: none; text-align: center; opacity: 0; transition: opacity 0.5s ease-in; }
+
+        .ui { text-align: center; margin: 10px; z-index: 10; }
+        canvas { 
+            background: #a5d6a7; border-radius: 30px; 
+            box-shadow: 0 15px 0 #81c784; border: 8px solid #ffffff;
+        }
+        .stats { display: flex; justify-content: center; gap: 60px; font-size: 20px; font-weight: bold; }
+	
+	#gameOverPopUp {
+            display: none; position: fixed; top: 50%; left: 50%; 
+            transform: translate(-50%, -50%); background: white; 
+            padding: 30px; border-radius: 20px; 
+            box-shadow: 0 0 50px rgba(0,0,0,0.5); text-align: center; 
+            z-index: 2000; border: 8px solid #f06292; width: 300px;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        #challengeCard {
+            display: none; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); background: white;
+            padding: 40px; border-radius: 25px; box-shadow: 0 0 100px rgba(0,0,0,0.4);
+            text-align: center; z-index: 100; border: 10px solid #ff4081; width: 450px;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } }
+        .challenge-box { background: #fce4ec; padding: 20px; border-radius: 15px; font-size: 24px; color: #ad1457; margin: 20px 0; border: 2px dashed #ff4081; }
+        .btn-restart { background: #ff4081; color: white; border: none; padding: 12px 30px; border-radius: 50px; cursor: pointer; font-size: 18px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="menu-screen">
+        <img src="bebek.png" alt="Bebek" class="duck-menu-img">
+        <h1 class="title-menu">Duck Love "Quack!"</h1>
+        <button class="btn-mulai" onclick="startTheGame()">MULAI</button>
+    </div>
+
+    <audio id="bgMusic" loop>
+        <source src="nyam.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="game-screen">
+
+        <div class="ui">
+
+            <h2 style="margin:5px; font-family: 'Fredoka One'; color: #ad1457;">Target: 20 Hati!</h2>
+
+            <div class="stats">
+
+                <div style="color: #0277bd;">Bebek Kacamata: <span id="s1">0</span></div>
+
+               <div style="color: #e65100;">Waktu: <span id="timerText">60</span>s</div>
+
+                <div style="color: #ad1457;">Bebek Pita: <span id="s2">0</span></div>
+
+            </div>
+
+        </div>
+
+
+
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+
+        
+
+        <div class="mobile-controls">
+
+            <div class="d-pad">
+
+                <div style="grid-column: 2; grid-row: 1;" class="btn-ctrl" onpointerdown="keys['KeyW']=true" onpointerup="keys['KeyW']=false">▲</div>
+
+                <div style="grid-column: 1; grid-row: 2;" class="btn-ctrl" onpointerdown="keys['KeyA']=true" onpointerup="keys['KeyA']=false">◀</div>
+
+                <div style="grid-column: 2; grid-row: 2;" class="btn-ctrl" onpointerdown="keys['KeyS']=true" onpointerup="keys['KeyS']=false">▼</div>
+
+                <div style="grid-column: 3; grid-row: 2;" class="btn-ctrl" onpointerdown="keys['KeyD']=true" onpointerup="keys['KeyD']=false">▶</div>
+
+            </div>
+
+
+
+            <div class="d-pad">
+
+                <div style="grid-column: 2; grid-row: 1;" class="btn-ctrl" onpointerdown="keys['ArrowUp']=true" onpointerup="keys['ArrowUp']=false">▲</div>
+
+                <div style="grid-column: 1; grid-row: 2;" class="btn-ctrl" onpointerdown="keys['ArrowLeft']=true" onpointerup="keys['ArrowLeft']=false">◀</div>
+
+                <div style="grid-column: 2; grid-row: 2;" class="btn-ctrl" onpointerdown="keys['ArrowDown']=true" onpointerup="keys['ArrowDown']=false">▼</div>
+
+                <div style="grid-column: 3; grid-row: 2;" class="btn-ctrl" onpointerdown="keys['ArrowRight']=true" onpointerup="keys['ArrowRight']=false">▶</div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+<div id="gameOverPopUp" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.5); text-align: center; z-index: 2000; border: 5px solid #f06292; width: 250px;">
+    <h2 id="endStatus" style="font-family: 'Fredoka One'; color: #f06292; margin-top: 0;">WAKTU HABIS!</h2>
+    <p id="finalScoreText" style="font-weight: bold;"></p>
+    <button onclick="location.reload()" style="background: #f06292; color: white; border: none; padding: 10px 25px; border-radius: 50px; cursor: pointer; font-family: 'Fredoka One'; box-shadow: 0 4px 0 #ad1457;">
+        Ulang Main
+    </button>
+</div>
+
+    <div id="challengeCard">
+        <h2 id="winnerTitle" style="font-family: 'Fredoka One';">Pemenang!</h2>
+        <p>Tantangan untuk pasangan:</p>
+        <div id="challengeText" class="challenge-box">---</div>
+        <button class="btn-restart" onclick="location.reload()">Main Lagi</button>
+    </div>
+	
+	
+    <script>
+	
+            let keys = {};
+        // LOGIKA TRANSISI MENU KE GAME
+        function startTheGame() {
+            const menu = document.getElementById('menu-screen');
+            const game = document.getElementById('game-screen');
+            const audio = document.getElementById('bgMusic');
+
+            // Putar musik
+            audio.play().catch(e => console.log("Audio play blocked"));
+
+            // Sembunyikan menu dan munculkan game
+            menu.style.opacity = '0';
+            setTimeout(() => {
+                menu.style.display = 'none';
+                game.style.display = 'block';
+                setTimeout(() => { game.style.opacity = '1'; }, 50);
+                initGameLogic(); // Jalankan logika game monster
+            }, 500);
+        }
+
+        // LOGIKA GAME MONSTER (KODE ASLI KAMU)
+        function initGameLogic() {
+            const canvas = document.getElementById("gameCanvas");
+            const ctx = canvas.getContext("2d");
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+            let gameActive = true;
+	    let timeLeft = 60;
+            let particles = [];
+            let safeZone = { x: 0, y: 0, w: 120, h: 120 };
+            
+            let p1 = { x: 40, y: 40, size: 45, score: 0, type: 'cool', isRespawning: false, inSafeZone: true };
+            let p2 = { x: 70, y: 40, size: 45, score: 0, type: 'cute', isRespawning: false, inSafeZone: true };
+            
+            let heart = { x: 450, y: 300, size: 25 };
+            let monsters = [
+                { x: 800, y: 450, size: 80, speed: 1.8 },
+                { x: 100, y: 450, size: 80, speed: 1.5 }
+            ];
+
+            const challenges = [
+                "Peluk pasangan selama 15 detik!",
+                "Cium pipi pasangan!",
+                "Puji 3 hal yang kamu sayang dari dia!",
+                "Tatap mata pasangan selama 20 detik!",
+                "Pijat pundak pasangan selama 1 menit!",
+                "Gendong pasangan keliling ruangan!",
+		"Cubit pipi pasangan mu!"
+            ];
+
+
+            window.onkeydown = (e) => { keys[e.code] = true; if(audioCtx.state === 'suspended') audioCtx.resume(); };
+            window.onkeyup = (e) => keys[e.code] = false;
+	
+	function showGameOver() {
+    gameActive = false; // Menghentikan pergerakan game
+    
+    // Ambil skor akhir
+    const s1 = document.getElementById("s1").innerText;
+    const s2 = document.getElementById("s2").innerText;
+    
+    // Tentukan pesan status
+    let status = "Waktu Habis!";
+    if (parseInt(s1) === parseInt(s2)) status = "SERI!";
+
+    // Update tampilan pop-up
+    document.getElementById("endStatus").innerText = status;
+    document.getElementById("finalScoreText").innerText = "Skor: " + s1 + " - " + s2;
+    document.getElementById("gameOverPopUp").style.display = "block";
+    document.getElementById("challengeCard").style.display = "none";
+}
+	
+	// Timer logic
+            const timerInterval = setInterval(() => {
+                if (gameActive) {
+                    timeLeft--;
+                    document.getElementById("timerText").innerText = timeLeft;
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        showGameOver();
+}  
+	 
+    
+	}
+
+    }, 1000);
+
+            function playSound(freq, type, duration) {
+                try {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(); osc.stop(audioCtx.currentTime + duration);
+                } catch(e) {}
+            }
+
+            function createParticles(x, y, color, count=10) {
+                for(let i=0; i<count; i++) {
+                    particles.push({ x, y, vx: (Math.random()-0.5)*12, vy: (Math.random()-0.5)*12, life: 1.0, color });
+                }
+            }
+
+            function drawMonster(m) {
+                ctx.fillStyle = "#2e7d32";
+                ctx.beginPath(); ctx.roundRect(m.x, m.y, m.size, m.size, 15); ctx.fill();
+                ctx.fillStyle = "red";
+                ctx.beginPath(); ctx.arc(m.x + 25, m.y + 30, 12, 0, Math.PI*2); ctx.arc(m.x + 55, m.y + 30, 12, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = "black";
+                ctx.beginPath(); ctx.arc(m.x + 25, m.y + 30, 5, 0, Math.PI*2); ctx.arc(m.x + 55, m.y + 30, 5, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = "black"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(m.x + 20, m.y + 60); ctx.lineTo(m.x + 60, m.y + 60); ctx.stroke();
+            }
+
+            function drawDuck(p) {
+                if(p.isRespawning) return;
+                ctx.fillStyle = "#ffeb3b";
+                ctx.beginPath(); ctx.arc(p.x+p.size/2, p.y+p.size/2, p.size/2, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = "#ff9800";
+                ctx.beginPath(); ctx.ellipse(p.x+p.size*0.8, p.y+p.size*0.6, p.size/5, p.size/10, 0, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = "black";
+                ctx.beginPath(); ctx.arc(p.x+p.size*0.65, p.y+p.size*0.4, p.size/15, 0, Math.PI*2); ctx.fill();
+                if(p.type === 'cool') {
+                    ctx.fillStyle = "#333"; ctx.fillRect(p.x+p.size*0.5, p.y+p.size*0.35, p.size*0.4, p.size*0.18);
+                } else {
+                    ctx.fillStyle = "#f06292"; ctx.beginPath(); ctx.arc(p.x+p.size*0.2, p.y+p.size*0.2, p.size/5, 0, Math.PI*2); ctx.fill();
+                }
+            }
+
+            function update() {
+                if (!gameActive) return;
+                const spd = 6;
+
+                [p1, p2].forEach(p => {
+                    if(p.isRespawning) return;
+                    let isP1 = (p === p1);
+                    if (isP1) {
+                        if (keys["KeyW"] && p.y > 0) p.y -= spd;
+                        if (keys["KeyS"] && p.y < canvas.height - p.size) p.y += spd;
+                        if (keys["KeyA"] && p.x > 0) p.x -= spd;
+                        if (keys["KeyD"] && p.x < canvas.width - p.size) p.x += spd;
+                    } else {
+                        if (keys["ArrowUp"] && p.y > 0) p.y -= spd;
+                        if (keys["ArrowDown"] && p.y < canvas.height - p.size) p.y += spd;
+                        if (keys["ArrowLeft"] && p.x > 0) p.x -= spd;
+                        if (keys["ArrowRight"] && p.x < canvas.width - p.size) p.x += spd;
+                    }
+
+                    p.inSafeZone = (p.x < safeZone.w && p.y < safeZone.h);
+
+                    if (Math.hypot((p.x+p.size/2)-heart.x, (p.y+p.size/2)-heart.y) < 40) {
+                        p.score++;
+                        playSound(600, 'sine', 0.1);
+                        createParticles(heart.x, heart.y, "#ff4081");
+                        document.getElementById(isP1 ? "s1" : "s2").innerText = p.score;
+                        heart.x = 150 + Math.random() * 650; heart.y = 150 + Math.random() * 300;
+                        if (p.score >= 20) { 
+			    showGameOver();
+                            gameActive = false; 
+                            document.getElementById("challengeCard").style.display = "block"; 
+    		  	    document.getElementById("winnerTitle").innerText = (isP1 ? "Bebek Kacamata" : "Bebek Pita") + " Menang!";
+   			    document.getElementById("challengeText").innerText = challenges[Math.floor(Math.random() * challenges.length)];
+			    document.getElementById("gameOverPopUp").style.display = "none"; 
+
+			   } 
+                    }
+                });
+
+                monsters.forEach(m => {
+                    let target = null;
+                    let minDist = 1000;
+                    [p1, p2].forEach(p => {
+                        if(!p.inSafeZone && !p.isRespawning) {
+                            let d = Math.hypot(p.x - m.x, p.y - m.y);
+                            if(d < minDist) { minDist = d; target = p; }
+                        }
+                    });
+
+                    if(target) {
+                        m.x += (m.x < target.x) ? m.speed : -m.speed;
+                        m.y += (m.y < target.y) ? m.speed : -m.speed;
+                    }
+
+                    [p1, p2].forEach(p => {
+                        if(!p.isRespawning && Math.hypot((p.x+p.size/2)-(m.x+m.size/2), (p.y+p.size/2)-(m.y+m.size/2)) < 50) {
+                            p.isRespawning = true;
+                            p.score = Math.max(0, p.score - 2);
+                            document.getElementById(p===p1?"s1":"s2").innerText = p.score;
+                            playSound(100, 'sawtooth', 0.4);
+                            createParticles(p.x + p.size/2, p.y + p.size/2, "#ffeb3b", 25);
+                            setTimeout(() => { p.x = 30; p.y = 30; p.isRespawning = false; }, 1000);
+                        }
+                    });
+                });
+
+                particles.forEach((pa, i) => { pa.x += pa.vx; pa.y += pa.vy; pa.life -= 0.02; if(pa.life <= 0) particles.splice(i, 1); });
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "#8d6e63"; ctx.fillRect(0, 0, safeZone.w, safeZone.h);
+                ctx.strokeStyle = "#5d4037"; ctx.lineWidth = 5; ctx.strokeRect(2, 2, safeZone.w-4, safeZone.h-4);
+                ctx.fillStyle = "rgba(255,255,255,0.4)"; ctx.font = "bold 14px Arial"; ctx.fillText("SAFE ZONE", 20, 110);
+
+                particles.forEach(pa => { ctx.globalAlpha = pa.life; ctx.fillStyle=pa.color; ctx.beginPath(); ctx.arc(pa.x, pa.y, 4, 0, Math.PI*2); ctx.fill(); ctx.globalAlpha = 1; });
+                
+                // Draw Heart Target
+                ctx.fillStyle = "#ff4081";
+                ctx.beginPath(); ctx.moveTo(heart.x, heart.y + 7);
+                ctx.bezierCurveTo(heart.x, heart.y, heart.x - 15, heart.y, heart.x - 15, heart.y + 7);
+                ctx.bezierCurveTo(heart.x - 15, heart.y + 22, heart.x, heart.y + 30, heart.x, heart.y + 35);
+                ctx.bezierCurveTo(heart.x, heart.y + 30, heart.x + 15, heart.y + 22, heart.x + 15, heart.y + 7);
+                ctx.bezierCurveTo(heart.x + 15, heart.y, heart.x, heart.y, heart.x, heart.y + 7); ctx.fill();
+
+                monsters.forEach(drawMonster);
+                drawDuck(p1); drawDuck(p2);
+                requestAnimationFrame(() => { update(); draw(); });
+            }
+	
+
+            draw();
+}
+window.addEventListener("keydown", e => keys[e.code] = true);
+
+        window.addEventListener("keyup", e => keys[e.code] = false);
+    </script>
+</body>
+</html>
