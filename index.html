@@ -199,7 +199,7 @@ canvas {
 
         <div class="ui">
 
-            <h2 style="margin:5px; font-family: 'Fredoka One'; color: #ad1457;">Target: 20 Hati!</h2>
+            <h2 style="margin:5px; font-family: 'Fredoka One'; color: #ad1457;">Target: 10 Hati!</h2>
 
             <div class="stats">
 
@@ -426,7 +426,7 @@ canvas {
                         createParticles(heart.x, heart.y, "#ff4081");
                         document.getElementById(isP1 ? "s1" : "s2").innerText = p.score;
                         heart.x = 150 + Math.random() * 650; heart.y = 150 + Math.random() * 300;
-                        if (p.score >= 20) { 
+                        if (p.score >= 10) { 
 			    showGameOver();
                             gameActive = false; 
                             document.getElementById("challengeCard").style.display = "block"; 
@@ -499,4 +499,5 @@ window.addEventListener("keydown", e => keys[e.code] = true);
 </body>
 
 </html>
+
 
